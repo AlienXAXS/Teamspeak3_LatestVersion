@@ -147,33 +147,22 @@
 					
 		$amd64Binary = null;
 		$i386Binary = null;
-		
-		//scan the array in reverse searching for a server binary then stop.
-		foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
-		{
-			$serverBinaryAMD64 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "amd64");
-			if ( ($serverBinaryAMD64 != null) && ($amd64Binary == null) )
-			{
-				$amd64Binary["file"] = $serverBinaryAMD64;
-				$amd64Binary["version"] = $teamspeakVersion;
-			}
 				
-			$serverBinaryi386 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "i386");
-			if ( ($serverBinaryi386 != null) && ($i386Binary == null) )
-			{
-				$i386Binary["file"] = $serverBinaryi386;
-				$i386Binary["version"] = $teamspeakVersion;
-			}
-			
-			//If we have both of the binarys, we can quit now.
-			if ( ($amd64Binary != null) && ($i386Binary != null) )
-				break;
-		}
-		
 		//Output the stuff in JSON format.
 		switch ( $requestedBitVersion )
 		{
 			case "amd64":
+				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
+				{
+					$serverBinaryAMD64 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "amd64");
+					if ( ($serverBinaryAMD64 != null) && ($amd64Binary == null) )
+					{
+						$amd64Binary["file"] = $serverBinaryAMD64;
+						$amd64Binary["version"] = $teamspeakVersion;
+						break;
+					}
+				}
+				
 				if ( $amd64Binary == null )
 					die ( json_encode(array("-1", "no version found")) );
 					
@@ -181,6 +170,17 @@
 				break;
 				
 			case "i386":
+				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
+				{
+					$serverBinaryi386 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "i386");
+					if ( ($serverBinaryi386 != null) && ($i386Binary == null) )
+					{
+						$i386Binary["file"] = $serverBinaryi386;
+						$i386Binary["version"] = $teamspeakVersion;
+						break;
+					}
+				}
+				
 				if ( $i386Binary == null )
 					die ( json_encode(array("-1", "no version found")) );
 					
