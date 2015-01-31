@@ -16,89 +16,11 @@
 		die ( "<strong>Error</strong> Please pass the bit type to the process (index.php?bit=i386/amd64)" );
 
 	$requestedBitVersion = $_GET['bit'];
-	if (!( $requestedBitVersion == "amd64" || $requestedBitVersion == "i386" ))
-		die ( "<strong>Error</strong> Supported bit versions are: amd64, i386" );
+	if (!( $requestedBitVersion == "amd64" || $requestedBitVersion == "x86" ))
+		die ( "<strong>Error</strong> Supported bit versions are: amd64, x86" );
 		
 	//Base URL for the repo
 	$baseURL = "http://dl.4players.de/ts/releases/";
-		
-	function getTeamspeakVersionsFromHTML($htmlSource)
-	{
-		$teamspeakVersionArray = null;
-		$dom = new DOMDocument;
-		try {
-			$dom->loadHTML($htmlSource);
-			$tableElements = $dom->getElementsByTagName("tr");
-			foreach ( $tableElements as $tableElement )
-			{
-				foreach ( $tableElement->childNodes as $tableChildElement )
-				{
-					$tableElementValue = $tableChildElement->nodeValue;
-
-					//If an element ends with a forward slash then it is a directory
-					if ( substr($tableElementValue, -1) == "/" )
-					{
-						$tableElementValue = substr($tableElementValue, 0, strlen($tableElementValue)-1);
-						//Does the element match a version number?
-						if ( preg_match ( "^((?:\d+\.)?(?:\d+\.)?\d+\.\d+)$^", $tableElementValue ) )
-						{
-							//Build array.
-							$teamspeakVersionArray[] = $tableElementValue;
-						}
-					}
-				}
-			}
-		} catch (Exception $e) {
-			
-		};
-		
-		//Sort the array naturally
-		natsort($teamspeakVersionArray);
-		return $teamspeakVersionArray;
-	}
-	
-	function doesVersionContainServerBinary($baseURL, $version, $bit)
-	{
-		$return = null;
-		$thisBaseURL = $baseURL . $version . "/";
-		
-		$htmlContent = getHTMLContentFromURL($thisBaseURL);
-		if ( $htmlContent["status"] == null )
-		{
-			$dom = new DOMDocument;
-			$dom->loadHTML($htmlContent["contents"]);
-			$tableElements = $dom->getElementsByTagName("tr");
-			foreach ( $tableElements as $tableElement )
-			{
-				foreach ( $tableElement->childNodes as $tableChildElement )
-				{
-					$tableElementValue = $tableChildElement->nodeValue;
-					if ( $bit == "i386" )
-					{
-						if ( strpos($tableElementValue, "server") &&
-							 strpos($tableElementValue, "linux") &&
-							 strpos($tableElementValue, "tar") &&
-						     strpos($tableElementValue, "x86") )
-						{
-							$return = $tableElementValue;
-						}
-					} else {
-						if ( strpos($tableElementValue, "server") &&
-							 strpos($tableElementValue, "linux") &&
-							 strpos($tableElementValue, "tar") &&
-							 strpos($tableElementValue, "amd64") )
-						{
-							$return = $tableElementValue;
-						}
-					};
-				}
-			}
-		} else {
-			echo "Error - " . $htmlContent["status"] . "<br />";
-		}
-		
-		return $return;
-	}
 	
 	//Builds a URL so that WGET can be used against it.
 	function buildDownloadURLForWGET($baseURL, $fileDetails)
@@ -108,13 +30,15 @@
 		return $baseURL . $fileVersion . "/" . $fileName;
 	}
 	
+	$TeamspeakHandler = new Teamspeak();
+	$TeamspeakHandler->setBinaryBitRequired($requestedBitVersion);
 	
 	$HTMLParser = new HTMLParser();
 	$HTMLParser->setURL($baseURL);
-	$htmlReleases = $HTMLParser->getHTML();
-	if ( $htmlReleases["status"] == null )
+	$HTMLParser->getHTML();
+	if ( $HTMLParser->Status == null )
 	{
-		$teamspeakVersions = getTeamspeakVersionsFromHTML($htmlReleases["contents"]);
+		$teamspeakVersions = $TeamspeakHandler->getTeamspeakVersionsFromHTML($HTMLParser->Contents);
 		
 		if ( $teamspeakVersions == null )
 			die ( "Unknown error, unable to get versions" );
@@ -128,7 +52,7 @@
 			case "amd64":
 				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
 				{
-					$serverBinaryAMD64 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "amd64");
+					$serverBinaryAMD64 = $TeamspeakHandler->doesVersionContainServerBinary($baseURL, $teamspeakVersion);
 					if ( ($serverBinaryAMD64 != null) && ($amd64Binary == null) )
 					{
 						$amd64Binary["file"] = $serverBinaryAMD64;
@@ -143,10 +67,10 @@
 				echo json_encode(array($amd64Binary["version"], buildDownloadURLForWGET($baseURL, $amd64Binary)));
 				break;
 				
-			case "i386":
+			case "x86":
 				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
 				{
-					$serverBinaryi386 = doesVersionContainServerBinary($baseURL, $teamspeakVersion, "i386");
+					$serverBinaryi386 = $TeamspeakHandler->doesVersionContainServerBinary($baseURL, $teamspeakVersion);
 					if ( ($serverBinaryi386 != null) && ($i386Binary == null) )
 					{
 						$i386Binary["file"] = $serverBinaryi386;
