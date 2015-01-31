@@ -9,6 +9,8 @@
 	 */
 
 	error_reporting(E_ALL);
+	include_once ( "include/htmlParser.class.php" );
+	include_once ( "include/teamspeak.class.php" );
 	
 	if ( !isset($_GET['bit']) )
 		die ( "<strong>Error</strong> Please pass the bit type to the process (index.php?bit=i386/amd64)" );
@@ -19,38 +21,7 @@
 		
 	//Base URL for the repo
 	$baseURL = "http://dl.4players.de/ts/releases/";
-	
-	/*
-	 * Reads a websites HTML
-	 * Returns array containing "status" and "contents"
-	 * "status" can either be NULL (no error) or the CURL error.
-	 * "contents" is the HTML string
-	 */
-	function getHTMLContentFromURL($URLInput)
-	{
-		//setup array.
-		$temp["status"] = null;
-		$temp["contents"] = null;
-	
-		$c = curl_init($URLInput);
-		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-		$temp["contents"] = curl_exec($c);
-
-		if (curl_error($c))
-		{
-			$temp["status"] = curl_error($c);
-		} else {
-			// Get the status code
-			$status = curl_getinfo($c, CURLINFO_HTTP_CODE);
-			if ( $status != "200" ) //Only update the status from NULL to something else if the status was NOT successful
-				$temp["status"] = $status;
-		};
 		
-		curl_close($c);
-		
-		return $temp;
-	}
-	
 	function getTeamspeakVersionsFromHTML($htmlSource)
 	{
 		$teamspeakVersionArray = null;
@@ -137,7 +108,10 @@
 		return $baseURL . $fileVersion . "/" . $fileName;
 	}
 	
-	$htmlReleases = getHTMLContentFromURL($baseURL);
+	
+	$HTMLParser = new HTMLParser();
+	$HTMLParser->setURL($baseURL);
+	$htmlReleases = $HTMLParser->getHTML();
 	if ( $htmlReleases["status"] == null )
 	{
 		$teamspeakVersions = getTeamspeakVersionsFromHTML($htmlReleases["contents"]);
