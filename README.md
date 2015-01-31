@@ -5,5 +5,5 @@ I am no way a professional PHP developer, but I do enjoy a bit of PHP from time 
 
 
 # Usage
-index.php?bit=amd64/i386 will return the latest version and a link to the download for WGET usage.
+index.php?bit=amd64/x86 will return the latest version and a link to the download for WGET usage.
 Returns all information in JSON format.
