@@ -6,22 +6,33 @@
 		function setBinaryBitRequired($binBit) { $this->binaryBitRequired = $binBit; }
 		function getBinaryBitRequired() { return $this->binaryBitRequired; }
 		
+		/*
+		 * Function: doesElementMatchServerBinaryRules
+		 * Input: String of server/client binary file name from repo
+		 * Output: Boolean | True: All matching strings have been found, is a server binary | False: Some or none found, is not a server binary
+		 *
+		 */
 		private function doesElementMatchServerBinaryRules($elementValue)
 		{
-			$elementsFound = 0;
+			$elementsFound = true;
 			$findElements = array("linux", "server", "tar", $this->binaryBitRequired);
 			foreach ( $findElements as $findElement )
 			{
-				if ( strpos($elementValue, $findElement) )
-					$elementsFound++;
+				if ( !(strpos($elementValue, $findElement)) )
+				{
+					$elementsFound = false;
+					break;
+				}
 			}
 			
-			if ( $elementsFound == count($findElements) )
-				return true;
-			else
-				return false;
+			return $elementsFound;
 		}
 		
+		/*
+		 * Function: getTeamspeakVersionsFromHTML
+		 * Input: String of HTML source from repo (normally an apache file browser output)
+		 * Output: An array(string) of teamspeak version numbers (aka folders which match regex of ?.?.?.?, eg version 11.20.33.1 inside the repo)
+		 */
 		function getTeamspeakVersionsFromHTML($htmlSource)
 		{
 			$teamspeakVersionArray = null;
@@ -57,6 +68,12 @@
 			return $teamspeakVersionArray;
 		}
 		
+		/*
+		 * Function: doesVersionContainServerBinary - Used to check if the version obtained from `getTeamspeakVersionsFromHTML` contains a server binary
+		 * Input: String $baseURL which contains the baseURL from index.php
+		 * Input: String $version which contains the pure version number obtained from `getTeamspeakVersionsFromHTML`.
+		 * Output: Boolean | Success: Version number | Failure: Null
+		 */
 		function doesVersionContainServerBinary($baseURL, $version)
 		{
 			$return = null;
@@ -75,30 +92,14 @@
 					foreach ( $tableElement->childNodes as $tableChildElement )
 					{						
 						if ($this->doesElementMatchServerBinaryRules($tableChildElement->nodeValue))
-							$return = $tableChildElement->nodeValue;
-							
-						/*if ( $bit == "i386" )
 						{
-							if ( strpos($tableElementValue, "server") &&
-								 strpos($tableElementValue, "linux") &&
-								 strpos($tableElementValue, "tar") &&
-								 strpos($tableElementValue, "x86") )
-							{
-								$return = $tableElementValue;
-							}
-						} else {
-							if ( strpos($tableElementValue, "server") &&
-								 strpos($tableElementValue, "linux") &&
-								 strpos($tableElementValue, "tar") &&
-								 strpos($tableElementValue, "amd64") )
-							{
-								$return = $tableElementValue;
-							}
-						};*/
+							$return = $tableChildElement->nodeValue;
+							break;
+						}
 					}
 				}
 			} else {
-				echo "Error - " . $HTMLParser->Status . "<br />";
+				echo "ERROR";
 			}
 			
 			return $return;

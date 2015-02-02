@@ -12,8 +12,7 @@
 		/*
 		 * Function: getHTML
 		 * Input: None
-		 * Output: Array[status], Contains error messages - null if no error
-		 * Output: Array[contents], Contains the HTML page contents that were downloaded from the $URL
+		 * Output: None, use $ClassVariable->Contents to get output.
 		 */
 		function getHTML()
 		{

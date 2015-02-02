@@ -42,14 +42,14 @@
 		
 		if ( $teamspeakVersions == null )
 			die ( "Unknown error, unable to get versions" );
-					
-		$amd64Binary = null;
-		$i386Binary = null;
-				
-		//Output the stuff in JSON format.
+
+		//Switch on the requested format (either x86 or amd64)
 		switch ( $requestedBitVersion )
 		{
 			case "amd64":
+				$amd64Binary = null;
+				
+				//Rotate around each version found in reverse and find a server binary.
 				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
 				{
 					$serverBinaryAMD64 = $TeamspeakHandler->doesVersionContainServerBinary($baseURL, $teamspeakVersion);
@@ -61,6 +61,7 @@
 					}
 				}
 				
+				//If we did not find anything then die with JSON Failure
 				if ( $amd64Binary == null )
 					die ( json_encode(array("-1", "no version found")) );
 					
@@ -68,6 +69,9 @@
 				break;
 				
 			case "x86":
+				$i386Binary = null;
+				
+				//Rotate around each version found in reverse and find a server binary.
 				foreach ( array_reverse($teamspeakVersions) as $teamspeakVersion )
 				{
 					$serverBinaryi386 = $TeamspeakHandler->doesVersionContainServerBinary($baseURL, $teamspeakVersion);
@@ -79,15 +83,14 @@
 					}
 				}
 				
+				//If we did not find anything then die with JSON Failure
 				if ( $i386Binary == null )
 					die ( json_encode(array("-1", "no version found")) );
 					
 				echo json_encode(array($i386Binary["version"], buildDownloadURLForWGET($baseURL, $i386Binary)));
 				break;
 		}
-		
 	} else {
 		echo "Error in GetHTMLContentFromURL, CURL returned an HTTP error code of " . $htmlReleases["status"];
 	}
-
 ?>
