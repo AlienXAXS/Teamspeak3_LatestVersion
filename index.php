@@ -13,7 +13,9 @@
 	include_once ( "include/teamspeak.class.php" );
 
 	if ( !isset($_GET['bit']) )
-		die ( "<strong>Error</strong> Please pass the bit type to the process (index.php?bit=x86/amd64)" );
+		die ( "<strong>Error</strong> Please pass the bit type to the process (index.php?bit=x86/amd64)<br>
+			<a href=\"http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]index.php?bit=x86\">http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]index.php?bit=x86</a>
+			<br><a href=\"http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]index.php?bit=amd64\">http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]index.php?bit=amd64</a>" );
 
 	$requestedBitVersion = $_GET['bit'];
 	if (!( $requestedBitVersion == "amd64" || $requestedBitVersion == "x86" ))
